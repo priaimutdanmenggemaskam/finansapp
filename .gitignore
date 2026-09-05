@@ -1,0 +1,44 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Backup lokal - tidak perlu dikirim ke GitHub
+App.sebelum-*.tsx
+App.stabil-*.tsx
+backups/
+
+App.backup-*.tsx
+
+App.backup-*.tsx
+
+App.backup-*.tsx
+
+src/App.CHECKPOINT-*.tsx
+src/App.backup-*.tsx
+src/App.tsx.backup*
+src/App.placeholder.tsx
+src/index.CHECKPOINT-*.css
+
+src/App.CHECKPOINT-*.css
+src/App.backup*.tsx

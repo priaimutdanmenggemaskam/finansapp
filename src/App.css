@@ -1,0 +1,261 @@
+/* =========================================================
+   FINANSKU - APP CSS
+   Modern • Mobile First • Responsive
+   ========================================================= */
+
+:root {
+  --fk-primary: #2563eb;
+  --fk-primary-dark: #1d4ed8;
+  --fk-success: #16a34a;
+  --fk-danger: #dc2626;
+  --fk-warning: #f59e0b;
+  --fk-purple: #7c3aed;
+  --fk-bg: #f5f7fb;
+  --fk-card: #ffffff;
+  --fk-text: #111827;
+  --fk-muted: #64748b;
+  --fk-border: #e2e8f0;
+  --fk-radius: 18px;
+}
+
+/* ---------- Dasar ---------- */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--fk-bg);
+  color: var(--fk-text);
+  font-family:
+    Inter,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* ---------- Scrollbar ---------- */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ---------- Form ---------- */
+
+input,
+select,
+textarea {
+  font-family: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+}
+
+/* ---------- Button ---------- */
+
+button {
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* ---------- Link ---------- */
+
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---------- Dashboard cards ---------- */
+
+.bg-white.rounded-2xl,
+.bg-white.rounded-xl {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.bg-white.rounded-2xl {
+  border-color: var(--fk-border);
+}
+
+/* Desktop hover */
+@media (hover: hover) {
+  .bg-white.rounded-2xl:hover {
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.07);
+  }
+}
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 640px) {
+  body {
+    font-size: 14px;
+  }
+
+  main {
+    overflow-x: hidden;
+  }
+
+  main.mx-auto {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  h1 {
+    letter-spacing: -0.025em;
+  }
+
+  h2 {
+    letter-spacing: -0.02em;
+  }
+
+  /* Card lebih nyaman di HP */
+  .rounded-2xl {
+    border-radius: 16px;
+  }
+
+  /* Input lebih mudah disentuh */
+  input,
+  select,
+  textarea {
+    min-height: 46px;
+  }
+
+  textarea {
+    min-height: 90px;
+  }
+
+  /* Grafik tidak terlalu tinggi di HP */
+  .h-80 {
+    height: 260px;
+  }
+}
+
+/* ---------- Tablet ---------- */
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  main.mx-auto {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+/* ---------- Safe area Android/iPhone ---------- */
+
+@supports (padding: max(0px)) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ---------- Loading ---------- */
+
+@keyframes fk-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Smooth appearance ---------- */
+
+main,
+header {
+  animation: fk-fade-in 0.25s ease-out;
+}
+
+@keyframes fk-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- Accessibility ---------- */
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.25);
+  outline-offset: 2px;
+}
+
+/* ---------- Small screens ---------- */
+
+@media (max-width: 380px) {
+  main.mx-auto {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .p-6 {
+    padding: 16px;
+  }
+
+  .p-5 {
+    padding: 16px;
+  }
+}
+
+/* ---------- Reduce motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

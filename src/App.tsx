@@ -112,6 +112,21 @@ const formatRupiah = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value);
 
+const formatTanggalIndonesia = (value: string) => {
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? new Date(value + "T00:00:00")
+    : new Date(value);
+
+  if (Number.isNaN(d.getTime())) return value;
+
+  return d.toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
+
 function Beranda() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -788,7 +803,7 @@ function Dashboard({ user }: { user: User }) {
                 <div>
                   <p className="font-semibold">{item.category}</p>
                   <p className="text-sm text-slate-500">
-                    {item.transaction_date}
+                    {formatTanggalIndonesia(item.transaction_date)}
                   </p>
                 </div>
 
@@ -1108,7 +1123,7 @@ function Transaksi({ user }: { user: User }) {
                         {item.category}
                       </p>
                       <p className="text-sm text-slate-500">
-                        {item.transaction_date}
+                        {formatTanggalIndonesia(item.transaction_date)}
                       </p>
                       {item.description && (
                         <p className="mt-1 text-sm text-slate-400">
@@ -1477,18 +1492,7 @@ function Laporan({ user }: { user: User }) {
         ? "Bulan Ini"
         : "Tahun Ini";
 
-    const formatDate = (value: string) => {
-      const d = new Date(value);
-      if (Number.isNaN(d.getTime())) return value;
-
-      return (
-        String(d.getDate()).padStart(2, "0") +
-        "/" +
-        String(d.getMonth() + 1).padStart(2, "0") +
-        "/" +
-        d.getFullYear()
-      );
-    };
+    const formatDate = (value: string) => formatTanggalIndonesia(value);
 
     const addPageHeader = () => {
       doc.setFont("helvetica", "bold");
@@ -2874,7 +2878,7 @@ function UtangPiutang({ user }: { user: User }) {
                     </div>
 
                     <p className="mt-2 text-sm text-slate-500">
-                      Jatuh tempo: {item.due_date}
+                      Jatuh tempo: {item.due_date ? formatTanggalIndonesia(item.due_date) : "-"}
                     </p>
 
                     <p className="mt-1 font-semibold">
@@ -3053,8 +3057,8 @@ function UtangPiutang({ user }: { user: User }) {
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
                     <div><p className="text-sm text-slate-500">Jumlah Awal</p><p className="font-semibold">{formatRupiah(Number(item.initial_amount))}</p></div>
                     <div><p className="text-sm text-slate-500">Sisa</p><p className={isPaid ? "font-semibold text-green-600" : "font-semibold text-blue-600"}>{formatRupiah(Number(item.remaining_amount))}</p></div>
-                    <div><p className="text-sm text-slate-500">Tanggal</p><p className="font-medium">{item.debt_date}</p></div>
-                    {item.due_date && <div><p className="text-sm text-slate-500">Jatuh Tempo</p><p className="font-medium">{item.due_date}</p></div>}
+                    <div><p className="text-sm text-slate-500">Tanggal</p><p className="font-medium">{formatTanggalIndonesia(item.debt_date)}</p></div>
+                    {item.due_date && <div><p className="text-sm text-slate-500">Jatuh Tempo</p><p className="font-medium">{formatTanggalIndonesia(item.due_date)}</p></div>}
                   </div>
 
                   {(() => {
@@ -3149,7 +3153,7 @@ function UtangPiutang({ user }: { user: User }) {
                                   Cicilan #{history.length - index}
                                 </p>
                                 <p className="text-xs text-slate-500">
-                                  {payment.payment_date}
+                                  {formatTanggalIndonesia(payment.payment_date)}
                                   {account ? " • " + account.name : ""}
                                 </p>
                               </div>

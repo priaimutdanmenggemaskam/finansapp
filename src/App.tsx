@@ -629,14 +629,7 @@ function Dashboard({ user }: { user: User }) {
     );
   }, 0);
 
-  const unlinkedBalance = transactions
-    .filter((x) => !x.account_id)
-    .reduce(
-      (sum, x) =>
-        sum + (x.type === "income" ? Number(x.amount) : -Number(x.amount)),
-      0
-    );
-  const balance = accountBalance + unlinkedBalance;
+  const balance = accountBalance;
 
   const accountBalances = accounts.map((account) => {
     const accountTransactionTotal = transactions
@@ -647,9 +640,20 @@ function Dashboard({ user }: { user: User }) {
         0
       );
 
+    const savingsTransactionTotal = savingsTransactions
+      .filter((x) => x.account_id === account.id)
+      .reduce(
+        (sum, x) =>
+          sum + (x.type === "deposit" ? -Number(x.amount) : Number(x.amount)),
+        0
+      );
+
     return {
       ...account,
-      currentBalance: Number(account.balance) + accountTransactionTotal,
+      currentBalance:
+        Number(account.balance) +
+        accountTransactionTotal +
+        savingsTransactionTotal,
     };
   });
 

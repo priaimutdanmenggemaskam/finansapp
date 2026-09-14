@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "./lib/supabase";
+import TabunganPage from "./pages/Tabungan";
 import { jsPDF } from "jspdf";
 import {
   ResponsiveContainer,
@@ -94,6 +95,18 @@ type Budget = {
   amount: number;
   month: number;
   year: number;
+};
+
+type SavingsTransaction = {
+  id: string;
+  user_id: string;
+  saving_goal_id: string | null;
+  account_id: string | null;
+  type: "deposit" | "withdrawal";
+  amount: number;
+  transaction_date: string;
+  notes: string | null;
+  created_at: string;
 };
 
 type SavingGoal = {
@@ -537,6 +550,7 @@ function Layout({
 function Dashboard({ user }: { user: User }) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [savingGoals, setSavingGoals] = useState<SavingGoal[]>([]);
+  const [savingsTransactions, setSavingsTransactions] = useState<SavingsTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [accounts, setAccounts] = useState<Account[]>([]);
 
@@ -560,6 +574,15 @@ function Dashboard({ user }: { user: User }) {
       .eq("user_id", user.id);
 
     setSavingGoals((goals || []) as SavingGoal[]);
+
+    const { data: savingsData } = await supabase
+      .from("savings_transactions")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("transaction_date", { ascending: false })
+      .order("created_at", { ascending: false });
+
+    setSavingsTransactions((savingsData || []) as SavingsTransaction[]);
     setLoading(false);
   }
 
@@ -589,7 +612,21 @@ function Dashboard({ user }: { user: User }) {
         0
       );
 
-    return sum + Number(account.balance) + accountTransactionTotal;
+    const savingsTransactionTotal = savingsTransactions
+      .filter((x) => x.account_id === account.id)
+      .reduce(
+        (accountSum, x) =>
+          accountSum +
+          (x.type === "deposit" ? -Number(x.amount) : Number(x.amount)),
+        0
+      );
+
+    return (
+      sum +
+      Number(account.balance) +
+      accountTransactionTotal +
+      savingsTransactionTotal
+    );
   }, 0);
 
   const unlinkedBalance = transactions
@@ -1165,194 +1202,6 @@ function Transaksi({ user }: { user: User }) {
               ))
             )}
           </div>
-        </div>
-      </div>
-    </Layout>
-  );
-}
-
-function Tabungan({ user }: { user: User }) {
-  const [goals, setGoals] = useState<SavingGoal[]>([]);
-  const [name, setName] = useState("");
-  const [target, setTarget] = useState("");
-  const [current, setCurrent] = useState("");
-  const [loading, setLoading] = useState(true);
-
-  async function load() {
-    const { data } = await supabase
-      .from("saving_goals")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-
-    setGoals((data || []) as SavingGoal[]);
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    load();
-    const refresh = () => { load(); };
-    window.addEventListener("transactions-changed", refresh);
-    return () => window.removeEventListener("transactions-changed", refresh);
-  }, [user.id]);
-
-  async function addGoal(e: React.FormEvent) {
-    e.preventDefault();
-
-    const targetAmount = Number(target);
-    const currentAmount = Number(current) || 0;
-
-    if (!name.trim()) {
-      alert("Nama target wajib diisi.");
-      return;
-    }
-
-    if (targetAmount <= 0) {
-      alert("Target tabungan harus lebih dari Rp 0.");
-      return;
-    }
-
-    if (currentAmount < 0) {
-      alert("Tabungan saat ini tidak boleh negatif.");
-      return;
-    }
-
-    if (currentAmount > targetAmount) {
-      alert("Tabungan saat ini tidak boleh lebih besar dari target.");
-      return;
-    }
-
-    const { error } = await supabase.from("saving_goals").insert({
-      user_id: user.id,
-      name: name.trim(),
-      target_amount: targetAmount,
-      current_amount: currentAmount,
-    });
-
-    if (error) {
-      console.error("Gagal menambah target:", error);
-      alert("Gagal menambah target: " + error.message);
-      return;
-    }
-
-    setName("");
-    setTarget("");
-    setCurrent("");
-    await load();
-      window.dispatchEvent(new Event("transactions-changed"));
-  }
-
-  async function remove(id: string) {
-    if (!confirm("Hapus target tabungan?")) return;
-
-    await supabase
-      .from("saving_goals")
-      .delete()
-      .eq("id", id)
-      .eq("user_id", user.id);
-
-    await load();
-      window.dispatchEvent(new Event("transactions-changed"));
-  }
-
-  return (
-    <Layout user={user}>
-      <h1 className="text-2xl font-bold">Tabungan</h1>
-      <p className="mt-1 text-slate-500">
-        Buat dan pantau target tabungan Anda.
-      </p>
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-3">
-        <div className="rounded-2xl border bg-white p-5 shadow-sm">
-          <h2 className="font-bold">Target Baru</h2>
-
-          <form onSubmit={addGoal} className="mt-4 space-y-3">
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Nama target"
-              className="w-full rounded-xl border p-3"
-            />
-
-            <input
-              type="number"
-              value={target}
-              onChange={(e) => setTarget(e.target.value)}
-              placeholder="Target Rp"
-              className="w-full rounded-xl border p-3"
-            />
-
-            <input
-              type="number"
-              value={current}
-              onChange={(e) => setCurrent(e.target.value)}
-              placeholder="Tabungan saat ini Rp"
-              className="w-full rounded-xl border p-3"
-            />
-
-            <button className="w-full rounded-xl bg-blue-600 p-3 font-semibold text-white">
-              Tambah Target
-            </button>
-          </form>
-        </div>
-
-        <div className="lg:col-span-2">
-          {loading ? (
-            <p>Memuat...</p>
-          ) : goals.length === 0 ? (
-            <div className="rounded-2xl border bg-white p-8 text-center text-slate-500">
-              Belum ada target tabungan.
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {goals.map((goal) => {
-                const percent =
-                  goal.target_amount > 0
-                    ? Math.min(
-                        100,
-                        Math.round(
-                          (goal.current_amount /
-                            goal.target_amount) *
-                            100
-                        )
-                      )
-                    : 0;
-
-                return (
-                  <div
-                    key={goal.id}
-                    className="rounded-2xl border bg-white p-5 shadow-sm"
-                  >
-                    <div className="flex justify-between">
-                      <h2 className="font-bold">{goal.name}</h2>
-                      <button onClick={() => remove(goal.id)}>
-                        <Trash2
-                          size={18}
-                          className="text-red-500"
-                        />
-                      </button>
-                    </div>
-
-                    <p className="mt-3 text-sm text-slate-500">
-                      {formatRupiah(goal.current_amount)} dari{" "}
-                      {formatRupiah(goal.target_amount)}
-                    </p>
-
-                    <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-100">
-                      <div
-                        className="h-full rounded-full bg-blue-600"
-                        style={{ width: `${percent}%` }}
-                      />
-                    </div>
-
-                    <p className="mt-2 text-right text-sm font-semibold text-blue-600">
-                      {percent}%
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </div>
       </div>
     </Layout>
@@ -2300,6 +2149,7 @@ function Dompet({ user }: { user: User }) {
   const [balance, setBalance] = useState("");
   const [type, setType] = useState("Tunai");
   const [accountTransactions, setAccountTransactions] = useState<Pick<Transaction, "account_id" | "type" | "amount">[]>([]);
+  const [savingsTransactions, setSavingsTransactions] = useState<SavingsTransaction[]>([]);
 
   async function load() {
     const { data } = await supabase
@@ -2311,6 +2161,13 @@ function Dompet({ user }: { user: User }) {
     setAccounts((data || []) as Account[]);
     const { data: transactionData } = await supabase.from("transactions").select("account_id, type, amount").eq("user_id", user.id).not("account_id", "is", null);
     setAccountTransactions((transactionData || []) as Pick<Transaction, "account_id" | "type" | "amount">[]);
+
+    const { data: savingsData } = await supabase
+      .from("savings_transactions")
+      .select("account_id, type, amount")
+      .eq("user_id", user.id)
+      .not("account_id", "is", null);
+    setSavingsTransactions((savingsData || []) as SavingsTransaction[]);
   }
 
   useEffect(() => {
@@ -2425,7 +2282,23 @@ function Dompet({ user }: { user: User }) {
                 </div>
 
                 <p className="mt-6 text-xl font-bold text-blue-600">
-                  {formatRupiah(Number(account.balance) + accountTransactions.filter((tx) => tx.account_id === account.id).reduce((sum, tx) => sum + (tx.type === "income" ? Number(tx.amount) : -Number(tx.amount)), 0))}
+                  {formatRupiah(
+                    Number(account.balance) +
+                    accountTransactions
+                      .filter((tx) => tx.account_id === account.id)
+                      .reduce(
+                        (sum, tx) =>
+                          sum + (tx.type === "income" ? Number(tx.amount) : -Number(tx.amount)),
+                        0
+                      ) +
+                    savingsTransactions
+                      .filter((tx) => tx.account_id === account.id)
+                      .reduce(
+                        (sum, tx) =>
+                          sum + (tx.type === "deposit" ? -Number(tx.amount) : Number(tx.amount)),
+                        0
+                      )
+                  )}
                 </p>
               </div>
             ))
@@ -3391,7 +3264,7 @@ function AppRoutes({ user }: { user: User | null }) {
         path="/tabungan"
         element={
           <Protected user={user}>
-            <Tabungan user={user as User} />
+            <TabunganPage user={user as User} />
           </Protected>
         }
       />
